@@ -1,36 +1,32 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 # Script to download files
 
-# Get local path
+# Get local [ath]
 localpath=$(pwd)
 echo "Local path: $localpath"
 
-# Create the list directory to save list of remote files and directories
-listpath="$localpath/list"
-echo "List path: $listpath"
-mkdir -p $listpath
-cd $listpath;
-
-# Define the FTP base address
-export ftpbase=""
-
-# Retrieve the list of files to download from FTP base address
-wget --no-remove-listing $ftpbase
-cat index.html | grep -Po '(?<=href=")[^"]*' | sort | cut -d "/" -f 10 > files.txt
-rm .listing
-rm index.html
-
 # Create the download directory
-export downloadpath="$localpath/download"
+downloadpath="$localpath/download"
 echo "Download path: $downloadpath"
 mkdir -p "$downloadpath"
-cd $downloadpath;
 
-# Download files in parallel
-cat $listpath/files.txt | xargs -P14 -n1 bash -c '
-  echo $0
-  wget -nH -q -nc -P $downloadpath $ftpbase$0
-'
+REPO_OWNER='marvinm2'
+REPO_NAME='AOPWikiRDF'
+
+#REF='master' # Branch name: master
+
+# Specific commit
+REF='b3d120abb5f51ff927c34ebd29e940627ffdd46e'
+
+# Define the tarball URL
+tarball_url="https://github.com/${REPO_OWNER}/${REPO_NAME}/archive/${REF}.tar.gz"
+
+# Retrieve and unpack the files
+curl -L $tarball_url | tar -C $downloadpath -xvzf -
+
+mv $downloadpath/${REPO_NAME}-${REF} $downloadpath/${REPO_NAME}
 
 echo "Download done."
